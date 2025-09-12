@@ -1,34 +1,27 @@
-import { Router, Request, Response } from 'express';
-import Libro from '../models/Libro'; // Asegúrate que la importación del modelo sea correcta
+// backend/src/routes/libros.ts
+
+import { Router } from 'express';
+import {
+  obtenerLibros,
+  obtenerLibroPorId,
+  crearLibro,
+  actualizarLibro,
+  eliminarLibro
+} from '../controllers/libroController';
+// 👇 CORRECCIÓN AQUÍ: Importamos los nombres correctos
+import { protegerRuta } from '../middlewares/authMiddleware';
+import { esAdmin } from '../middlewares/adminMiddleware';
 
 const router = Router();
 
-// Función para obtener todos los libros
-const obtenerLibros = async (req: Request, res: Response) => {
-  try {
-    const libros = await Libro.find(); // Busca todos los libros en el almacén
-    res.json({ libros }); // Responde con la lista de libros
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener los libros' });
-  }
-};
-
-// Función para crear un libro nuevo
-const crearLibro = async (req: Request, res: Response) => {
-  try {
-    const libroNuevo = new Libro(req.body); // Crea un libro nuevo con los datos
-    await libroNuevo.save(); // Guarda el libro en el almacén
-    res.status(201).json({ mensaje: 'Libro creado exitosamente', libro: libroNuevo });
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al crear el libro' });
-  }
-};
-
-// --- LA PARTE QUE FALTABA ---
-// Aquí definimos las rutas y qué función usarán
+// --- Rutas Públicas ---
 router.get('/', obtenerLibros);
-router.post('/', crearLibro);
+router.get('/:id', obtenerLibroPorId);
 
-// --- LA LÍNEA MÁS IMPORTANTE PARA SOLUCIONAR EL ERROR ---
-// Aquí exportamos el router para que index.ts pueda usarlo
+// --- Rutas de Administrador ---
+// 👇 Y CORRECCIÓN AQUÍ: Usamos los nombres correctos
+router.post('/', protegerRuta, esAdmin, crearLibro);
+router.put('/:id', protegerRuta, esAdmin, actualizarLibro);
+router.delete('/:id', protegerRuta, esAdmin, eliminarLibro);
+
 export default router;
